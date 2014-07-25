@@ -1,11 +1,9 @@
 #/usr/bin/python
 
-import gzip, urllib2
+import sys, gzip, urllib2
 import xml.etree.ElementTree as ET
 from StringIO import StringIO
 import sqlite3
-
-
 
 URL = 'https://api.findmespot.com/spot-main-web/consumer/rest-api/2.0/public/feed/0PmgJAJrEq7TG0Rlu7oEc9UdOaCtTczH4/message'
 
@@ -19,13 +17,24 @@ if response.info().get('Content-Encoding') == 'gzip':
     data = f.read()
 
 root = ET.fromstring(data)
+db = sqlite3.connect('sailsohard.db')
+message_last_update = db.execute('select unixTime from messages order by unixTime desc limit 1').fetchone()[0]
 
-connection = sqlite3.connect('sailsohard.db')
-c = connection.cursor()
 for message in root.iter('message'):
-    values_dict = {}
-    for child in message.getchildren():
-        values_dict[child.tag] = child.text
-    c.execute("insert into messages ('longitude', 'latitude', 'unitTime', 'messageType', 'dateTime', 'showCustomMsg', 'messengerName', 'messengerId', 'batteryState', 'messageDetail', 'id', 'modelId'), values()")
-
-    print values_dict
+    if int(message.find('./unixTime').text) > int(message_last_update):
+        
+        db.execute('insert into messages values(?,?,?,?,?,?,?,?,?,?,?,?)',
+            [message.find('./longitude').text,
+            message.find('./latitude').text,
+            message.find('./unixTime').text,
+            message.find('./messageType').text,
+            message.find('./dateTime').text,
+            message.find('./showCustomMsg').text,
+            message.find('./messengerName').text,
+            message.find('./messengerId').text,
+            message.find('./batteryState').text,
+            message.find('./messageDetail').text,
+            message.find('./id').text,
+            message.find('./modelId').text])
+        db.commit()
+db.close()
