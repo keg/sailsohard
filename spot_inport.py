@@ -3,6 +3,7 @@
 import gzip, urllib2
 import xml.etree.ElementTree as ET
 from StringIO import StringIO
+import sqlite3
 
 
 
@@ -18,16 +19,13 @@ if response.info().get('Content-Encoding') == 'gzip':
     data = f.read()
 
 root = ET.fromstring(data)
+
+connection = sqlite3.connect('sailsohard.db')
+c = connection.cursor()
 for message in root.iter('message'):
+    values_dict = {}
     for child in message.getchildren():
-        #this is stupid, don't do so many if checks. Create a data object and dump what you need in
-        if child.tag == 'id':
-            m_id = child.text
-        elif child.tag == 'dateTime':
-            m_date_time = child.text
-        elif child.tag == 'latitude':
-            m_latitude = child.text
-        elif child.tag == 'longitude':
-            m_longitude = child.text
-        
-        print m_id, m_date_time
+        values_dict[child.tag] = child.text
+    c.execute("insert into messages ('longitude', 'latitude', 'unitTime', 'messageType', 'dateTime', 'showCustomMsg', 'messengerName', 'messengerId', 'batteryState', 'messageDetail', 'id', 'modelId'), values()")
+
+    print values_dict
