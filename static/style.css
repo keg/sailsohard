@@ -1,4 +1,11 @@
-body {
-  padding-top: 50px;
+#map-holder {
+        position: absolute;
+        height: 93%;
+        width: 100%;
 }
-#map {position: absolute; top: 0; bottom:0; width: 100%;}
+
+#map {  position: absolute; 
+        top: 0;
+        bottom:0;
+        width: 100%;
+}

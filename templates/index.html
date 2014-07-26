@@ -8,7 +8,7 @@
     <meta name="author" content="Kevin Graves kevingraves.com">
     <link rel="icon" href="favicon.ico">
 
-    <title>Sail So Hard - v0.1</title>
+    <title>Where the boat is</title>
 
     <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
     <link href='https://api.tiles.mapbox.com/mapbox.js/v1.6.4/mapbox.css' rel='stylesheet' />
@@ -19,7 +19,16 @@
       {% for message in messages %}
         {
           type: 'Feature',
-          "geometry": {"type": "Point", "coordinates": [{{message.1}}, {{message.2}}]}
+          geometry: {
+            'type': "Point",
+            'coordinates': [{{message.1}}, {{message.2}}]
+          },
+          properties: {
+            title: '{{message.0}}',
+            'marker-color': 'BE9A6B',
+            'marker-size': 'small',
+            'marker-symbol': 'harbor'
+          }
         },
       {% endfor %}
       ]
@@ -56,30 +65,50 @@
     </div>
     #}
 
-    <div class="container">
+    <div class="container-fluid">
+      <div class="row">
         <h1>Where the boat is</h1>
+      </div>
+      <div id="map-holder" class="row">
         <div id='map'></div>
+      </div>
     </div><!-- /.container -->
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
     <script>
-      map = L.mapbox.map('map', 'keg.j2c6pjii');
+      var startLatLon = L.latLng(geoJson[0].geometry.coordinates[1], geoJson[0].geometry.coordinates[0]);
+      map = L.mapbox.map('map','keg.j2c6pjii',{ center: startLatLon, zoom: 11});
       
       var myLayer = L.mapbox.featureLayer().addTo(map);
       
       myLayer.on('layeradd', function(e) {
         var marker = e.layer,
-          feature = marker.feature;
-          // Create custom popup content
-          var popupContent =  'asdf';
+        feature = marker.feature;
+        var popupContent = feature.geometry.coordinates.toString();
+        marker.bindPopup(popupContent,{
+          closeButton: false,
+          minWidth: 320
+        });
+      
+        var line = [];
+        this.eachLayer(function(marker) {
+          line.push(marker.getLatLng());
+        });
 
-          // http://leafletjs.com/reference.html#popup
-          marker.bindPopup(popupContent,{
-            closeButton: false,
-            minWidth: 320
-          });
+        var polyline_options = {
+          color: '#555',
+          opacity: '0.9',
+          weight: '3'
+        };
+
+        var polyline = L.polyline(line, polyline_options).addTo(map);
+        
       });
+      
+      //myLayer.on('ready', function() {
+      //  map.fitBounds(myLayer.getbounds());
+      //});
       
       myLayer.setGeoJSON(geoJson);
     </script>
