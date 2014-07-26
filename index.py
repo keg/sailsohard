@@ -8,16 +8,15 @@ app.config.update(dict(
     DEBUG=True
 ))
 
+def get_data():
+    db = sqlite3.connect(app.config['DATABASE'])
+    cur = db.execute('select id, longitude, latitude from messages order by unixTime')
+    messages = cur.fetchall()
+    return messages
+
 @app.route('/')
 def index():
-    return render_template('index.html')
-
-@app.route('/geo-json.js')
-def geoJson():
-    db = sqlite3.connect(app.config['DATABASE'])
-    cur = db.execute('select id, latitude, longitude from messages')
-    messages = cur.fetchall()
-    return render_template('geo_json.html', messages=messages)
+    return render_template('index.html', messages=get_data())
 
 if __name__ == '__main__':
     app.run()
