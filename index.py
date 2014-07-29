@@ -10,7 +10,7 @@ app.config.update(dict(
 
 def get_data():
     db = sqlite3.connect(app.config['DATABASE'])
-    cur = db.execute('select id, longitude, latitude from messages order by unixTime')
+    cur = db.execute('select id, longitude, latitude from messages order by unixTime desc')
     messages = cur.fetchall()
     return messages
 
